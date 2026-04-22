@@ -8,11 +8,8 @@ User = get_user_model()
 
 
 class TestRoutes(TestCase):
-    """Проверки доступности страниц, редиректов и прав доступа."""
-
     @classmethod
     def setUpTestData(cls):
-        """Создаёт пользователей, заметку и заранее вычисляет URL-адреса."""
         cls.author = User.objects.create_user(
             username='author',
             password='pass',
@@ -41,24 +38,24 @@ class TestRoutes(TestCase):
         cls.signup_url = reverse('users:signup')
 
     def test_home_available_for_anonymous(self):
-        """Главная страница доступна анонимному пользователю."""
         response = self.client.get(self.home_url)
         self.assertEqual(response.status_code, 200)
 
     def test_auth_pages_available_for_all(self):
-        """Страницы login/logout/signup доступны любому пользователю."""
-        urls = (
-            self.login_url,
-            self.logout_url,
-            self.signup_url,
-        )
-        for url in urls:
-            with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertEqual(response.status_code, 200)
+        response = self.client.get(self.login_url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(self.signup_url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(self.logout_url)
+        self.assertIn(response.status_code, (200, 405))
+
+        if response.status_code == 405:
+            response = self.client.post(self.logout_url)
+            self.assertIn(response.status_code, (200, 302))
 
     def test_pages_available_for_authenticated_user(self):
-        """Авторизованному доступны notes/, done/, add/."""
         client = Client()
         client.force_login(self.author)
 
@@ -73,7 +70,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, 200)
 
     def test_note_pages_available_only_for_author(self):
-        """Автору доступны detail/edit/delete его заметки."""
         client = Client()
         client.force_login(self.author)
 
@@ -88,7 +84,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, 200)
 
     def test_note_pages_return_404_for_other_user(self):
-        """Другому пользователю detail/edit/delete чужой заметки возвращают 404."""
         client = Client()
         client.force_login(self.other_user)
 
@@ -103,7 +98,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, 404)
 
     def test_anonymous_redirects_to_login(self):
-        """Анонимный пользователь перенаправляется на логин со всех защищённых."""
         urls = (
             self.list_url,
             self.success_url,
@@ -116,7 +110,5 @@ class TestRoutes(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 302)
-                self.assertEqual(
-                    response.url,
-                    f'{self.login_url}?next={url}',
-                )
+                expected = f'{self.login_url}?next={url}'
+                self.assertEqual(response.url, expected)

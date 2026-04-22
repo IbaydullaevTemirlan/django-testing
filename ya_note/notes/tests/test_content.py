@@ -9,11 +9,8 @@ User = get_user_model()
 
 
 class TestContent(TestCase):
-    """Проверки контента и контекста страниц (без анализа HTML)."""
-
     @classmethod
     def setUpTestData(cls):
-        """Создаёт пользователей и заметки для проверки контекста."""
         cls.author = User.objects.create_user(
             username='author',
             password='pass',
@@ -40,7 +37,6 @@ class TestContent(TestCase):
         cls.edit_url = reverse('notes:edit', args=(cls.author_note.slug,))
 
     def test_note_in_object_list_in_context(self):
-        """На странице списка заметок заметка автора есть в object_list."""
         client = Client()
         client.force_login(self.author)
 
@@ -49,7 +45,6 @@ class TestContent(TestCase):
         self.assertIn(self.author_note, object_list)
 
     def test_other_users_notes_not_in_list(self):
-        """В список заметок пользователя не попадают заметки другого пользователя."""
         client = Client()
         client.force_login(self.author)
 
@@ -59,7 +54,6 @@ class TestContent(TestCase):
         self.assertNotIn(self.other_note, object_list)
 
     def test_forms_on_add_and_edit_pages(self):
-        """На страницы создания и редактирования заметки передаются формы."""
         client = Client()
         client.force_login(self.author)
 

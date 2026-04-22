@@ -8,7 +8,6 @@ pytestmark = pytest.mark.django_db
 
 
 def test_anonymous_cannot_create_comment(client, news):
-    # Анонимный пользователь не может отправить комментарий (редирект на логин).
     url = reverse('news:detail', args=(news.id,))
     login_url = reverse('users:login')
 
@@ -19,7 +18,6 @@ def test_anonymous_cannot_create_comment(client, news):
 
 
 def test_authorized_can_create_comment(author_client, author, news):
-    # Авторизованный пользователь может отправить комментарий.
     url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data={'text': 'Hello'})
 
@@ -33,9 +31,9 @@ def test_authorized_can_create_comment(author_client, author, news):
 
 
 def test_bad_words_comment_not_published(author_client, news):
-    # Если есть запрещённое слово, комментарий не сохраняется и есть ошибка формы.
     url = reverse('news:detail', args=(news.id,))
-    response = author_client.post(url, data={'text': f'Text {BAD_WORDS[0]}'})
+    bad_text = f'Text {BAD_WORDS[0]}'
+    response = author_client.post(url, data={'text': bad_text})
 
     assert response.status_code == 200
     assert Comment.objects.count() == 0
@@ -43,7 +41,6 @@ def test_bad_words_comment_not_published(author_client, news):
 
 
 def test_author_can_edit_own_comment(author_client, comment):
-    # Авторизованный пользователь может редактировать свой комментарий.
     url = reverse('news:edit', args=(comment.id,))
     response = author_client.post(url, data={'text': 'New text'})
 
@@ -53,7 +50,6 @@ def test_author_can_edit_own_comment(author_client, comment):
 
 
 def test_author_can_delete_own_comment(author_client, comment):
-    # Авторизованный пользователь может удалять свой комментарий.
     url = reverse('news:delete', args=(comment.id,))
     response = author_client.post(url)
 
@@ -62,14 +58,12 @@ def test_author_can_delete_own_comment(author_client, comment):
 
 
 def test_user_cannot_edit_foreign_comment(reader_client, comment):
-    # Авторизованный пользователь не может редактировать чужой комментарий (404).
     url = reverse('news:edit', args=(comment.id,))
     response = reader_client.post(url, data={'text': 'Hack'})
     assert response.status_code == 404
 
 
 def test_user_cannot_delete_foreign_comment(reader_client, comment):
-    # Авторизованный пользователь не может удалять чужой комментарий (404).
     url = reverse('news:delete', args=(comment.id,))
     response = reader_client.post(url)
     assert response.status_code == 404

@@ -11,11 +11,8 @@ User = get_user_model()
 
 
 class TestLogic(TestCase):
-    """Проверки бизнес-логики: создание, slug, редактирование, удаление."""
-
     @classmethod
     def setUpTestData(cls):
-        """Создаёт пользователей, заметку и URL-адреса для тестов логики."""
         cls.author = User.objects.create_user(
             username='author',
             password='pass',
@@ -38,19 +35,15 @@ class TestLogic(TestCase):
         cls.delete_url = reverse('notes:delete', args=(cls.note.slug,))
 
     def test_anonymous_cannot_create_note(self):
-        """Анонимный пользователь не может создать заметку (редирект на логин)."""
         response = self.client.post(
             self.add_url,
             data={'title': 'T', 'text': 'X', 'slug': 's1'},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url,
-            f'{self.login_url}?next={self.add_url}',
-        )
+        expected = f'{self.login_url}?next={self.add_url}'
+        self.assertEqual(response.url, expected)
 
     def test_authenticated_can_create_note(self):
-        """Залогиненный пользователь может создать заметку."""
         client = Client()
         client.force_login(self.author)
 
@@ -67,7 +60,6 @@ class TestLogic(TestCase):
         self.assertEqual(note.author, self.author)
 
     def test_cannot_create_two_notes_with_same_slug(self):
-        """Невозможно создать две заметки с одинаковым slug."""
         client = Client()
         client.force_login(self.author)
 
@@ -82,7 +74,6 @@ class TestLogic(TestCase):
         self.assertIn(WARNING, form.errors['slug'][0])
 
     def test_slug_is_created_automatically_if_empty(self):
-        """Если slug пустой - он создаётся автоматически через slugify(title)."""
         client = Client()
         client.force_login(self.author)
 
@@ -101,7 +92,6 @@ class TestLogic(TestCase):
         self.assertEqual(note.slug, expected_slug)
 
     def test_author_can_edit_and_delete_own_note(self):
-        """Автор может редактировать и удалять свою заметку."""
         client = Client()
         client.force_login(self.author)
 
@@ -121,7 +111,6 @@ class TestLogic(TestCase):
         self.assertFalse(Note.objects.filter(id=self.note.id).exists())
 
     def test_user_cannot_edit_or_delete_foreign_note(self):
-        """Пользователь не может редактировать/удалять чужую заметку (404)."""
         client = Client()
         client.force_login(self.other_user)
 
@@ -133,7 +122,11 @@ class TestLogic(TestCase):
 
         response = client.post(
             self.edit_url,
-            data={'title': 'Hack', 'text': 'Hack', 'slug': self.note.slug},
+            data={
+                'title': 'Hack',
+                'text': 'Hack',
+                'slug': self.note.slug,
+            },
         )
         self.assertEqual(response.status_code, 404)
 
