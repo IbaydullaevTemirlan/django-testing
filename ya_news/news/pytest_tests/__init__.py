@@ -1,2 +1,1 @@
-"""Pytest tests for ya_news.."""
-
+"""Pytest tests for ya_news."""
