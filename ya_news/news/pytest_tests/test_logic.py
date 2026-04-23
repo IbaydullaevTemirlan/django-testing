@@ -53,7 +53,10 @@ def test_author_can_delete_comment(
     assert Comment.objects.count() == 0
 
 
-def test_user_cant_delete_comment_of_another_user(reader_client, comment_delete_url):
+def test_user_cant_delete_comment_of_another_user(
+    reader_client,
+    comment_delete_url
+):
     """Пользователь не может удалить чужой комментарий."""
     response = reader_client.delete(comment_delete_url)
     assert response.status_code == HTTPStatus.NOT_FOUND
