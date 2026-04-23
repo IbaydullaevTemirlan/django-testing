@@ -6,9 +6,11 @@ from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
 
 
-def test_anonymous_user_cant_create_comment(client,
-                                            detail_url, comment_form_data
-                                            ):
+def test_anonymous_user_cant_create_comment(
+    client,
+    detail_url,
+    comment_form_data
+):
     """Анонимный пользователь не может отправить комментарий."""
     client.post(detail_url, data=comment_form_data)
     assert Comment.objects.count() == 0
@@ -33,14 +35,18 @@ def test_user_can_create_comment(
 
 
 def test_user_cant_use_bad_words(author_client, detail_url):
-    """Стоп-слова: комментарий не публикуется, форма возвращает ошибку."""
+    """Стоп-слова: форма возвращает ошибку, комментарий не создаётся."""
     text = f'Какой-то текст, {BAD_WORDS[0]}, еще текст'
     response = author_client.post(detail_url, data={'text': text})
     assertFormError(response.context['form'], 'text', errors=WARNING)
     assert Comment.objects.count() == 0
 
 
-def test_author_can_delete_comment(author_client, comment_delete_url, detail_comments_url):
+def test_author_can_delete_comment(
+    author_client,
+    comment_delete_url,
+    detail_comments_url,
+):
     """Автор может удалить свой комментарий."""
     response = author_client.delete(comment_delete_url)
     assertRedirects(response, detail_comments_url)

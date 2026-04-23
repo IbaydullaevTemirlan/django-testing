@@ -55,7 +55,7 @@ def comment(news, author, db):
 
 @pytest.fixture
 def many_news(db):
-    """Создаёт новости для проверки количества и сортировки на главной."""
+    """Создаёт новости для проверки количества и сортировки."""
     today = timezone.now().date()
     all_news = [
         News(
@@ -70,7 +70,7 @@ def many_news(db):
 
 @pytest.fixture
 def news_with_comments(news, author, db):
-    """Создаёт комментарии с разным временем создания для проверки сортировки."""
+    """Создаёт комментарии для проверки сортировки."""
     now = timezone.now()
     for index in range(10):
         created_comment = Comment.objects.create(
@@ -102,7 +102,7 @@ def detail_url(news):
 
 @pytest.fixture
 def detail_comments_url(detail_url):
-    """URL страницы новости с якорем на блок комментариев."""
+    """URL страницы новости с якорем комментариев."""
     return f'{detail_url}#comments'
 
 
