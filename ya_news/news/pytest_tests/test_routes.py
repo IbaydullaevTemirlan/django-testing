@@ -18,7 +18,7 @@ from pytest_lazyfixture import lazy_fixture as lf
     ),
 )
 def test_pages_availability_for_anonymous_user(client, name, args):
-    """Публичные страницы доступны анонимному пользователю (logout проверяем POST-запросом)."""
+    """Публичные страницы доступны анониму (logout проверяем POST-запросом)."""
     url = reverse(name, args=args)
     if name == 'users:logout':
         response = client.post(url)
@@ -37,9 +37,12 @@ def test_pages_availability_for_anonymous_user(client, name, args):
 )
 @pytest.mark.parametrize('name', ('news:edit', 'news:delete'))
 def test_pages_availability_for_different_users(
-    parametrized_client, name, comment_args, expected_status
+    parametrized_client,
+    name,
+    comment_args,
+    expected_status,
 ):
-    """Страницы редактирования/удаления: автору OK, не автору 404."""
+    """Редакт./удал.: автору OK, не автору 404."""
     url = reverse(name, args=comment_args)
     response = parametrized_client.get(url)
     assert response.status_code == expected_status
@@ -47,7 +50,7 @@ def test_pages_availability_for_different_users(
 
 @pytest.mark.parametrize('name', ('news:edit', 'news:delete'))
 def test_redirects(client, name, comment_args):
-    """Анонимный пользователь перенаправляется на логин при попытке редактировать/удалять комментарий."""
+    """Аноним перенаправляется на логин при редактировании/удалении."""
     login_url = reverse('users:login')
     url = reverse(name, args=comment_args)
     expected_url = f'{login_url}?next={url}'

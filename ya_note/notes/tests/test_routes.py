@@ -1,4 +1,3 @@
-# ya_note/notes/tests/test_routes.py
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
@@ -25,17 +24,8 @@ class TestRoutes(TestCase):
             author=cls.author,
         )
 
-    def test_pages_availability_for_auth_user(self):
-        """Страницы list/add/success доступны авторизованному пользователю."""
-        self.client.force_login(self.author)
-        for name in ('notes:list', 'notes:add', 'notes:success'):
-            with self.subTest(name=name):
-                url = reverse(name)
-                response = self.client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-
     def test_pages_availability(self):
-        """Главная страница и страницы регистрации/логина/логаута доступны анонимному пользователю."""
+        """Главная и страницы регистрации/логина/логаута доступны анониму."""
         urls = (
             ('notes:home', None),
             ('users:login', None),
@@ -55,8 +45,17 @@ class TestRoutes(TestCase):
                     response = self.client.get(url)
                     self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    def test_pages_availability_for_auth_user(self):
+        """Страницы list/add/success доступны авторизованному пользователю."""
+        self.client.force_login(self.author)
+        for name in ('notes:list', 'notes:add', 'notes:success'):
+            with self.subTest(name=name):
+                url = reverse(name)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_availability_for_note_detail_edit_and_delete(self):
-        """Страницы заметки доступны автору и недоступны (404) не-автору."""
+        """detail/edit/delete: автору OK, не автору 404."""
         users_statuses = (
             (self.author, HTTPStatus.OK),
             (self.reader, HTTPStatus.NOT_FOUND),
@@ -70,7 +69,7 @@ class TestRoutes(TestCase):
                     self.assertEqual(response.status_code, status)
 
     def test_redirect_for_anonymous_client(self):
-        """Анонимный пользователь перенаправляется на логин при попытке зайти на защищённые страницы."""
+        """Аноним перенаправляется на логин при входе на защищённые страницы."""
         login_url = reverse('users:login')
         for name in (
             'notes:list',

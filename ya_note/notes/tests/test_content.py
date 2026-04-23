@@ -39,7 +39,7 @@ class TestNotesListPage(TestCase):
         )
 
     def test_notes_list_contains_only_author_notes(self):
-        """В список заметок попадают только заметки текущего пользователя."""
+        """В список попадают только заметки текущего пользователя."""
         self.client.force_login(self.author)
         response = self.client.get(self.LIST_URL)
         object_list = response.context['object_list']
@@ -58,7 +58,7 @@ class TestNotesListPage(TestCase):
 
 
 class TestNoteFormPages(TestCase):
-    """Тесты контента страниц с формой создания и редактирования заметки."""
+    """Тесты контента страниц с формой создания и редактирования."""
 
     ADD_URL = reverse('notes:add')
 
@@ -75,14 +75,14 @@ class TestNoteFormPages(TestCase):
         cls.edit_url = reverse('notes:edit', args=(cls.note.slug,))
 
     def test_authorized_client_has_form_on_add_page(self):
-        """Авторизованному пользователю передаётся форма на страницу добавления."""
+        """Авторизованному передаётся форма на странице добавления."""
         self.client.force_login(self.author)
         response = self.client.get(self.ADD_URL)
         self.assertIn('form', response.context)
         self.assertIsInstance(response.context['form'], NoteForm)
 
     def test_authorized_client_has_form_on_edit_page(self):
-        """Авторизованному пользователю передаётся форма на страницу редактирования."""
+        """Авторизованному передаётся форма на странице редактирования."""
         self.client.force_login(self.author)
         response = self.client.get(self.edit_url)
         self.assertIn('form', response.context)

@@ -8,14 +8,14 @@ from news.models import Comment
 
 
 def test_anonymous_user_cant_create_comment(client, news, comment_form_data):
-    """Анонимный пользователь не может отправить комментарий."""
+    """Аноним не может отправить комментарий."""
     url = reverse('news:detail', args=(news.id,))
     client.post(url, data=comment_form_data)
     assert Comment.objects.count() == 0
 
 
 def test_user_can_create_comment(author_client, author, news, comment_form_data):
-    """Авторизованный пользователь может отправить комментарий."""
+    """Авторизованный может отправить комментарий."""
     url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=comment_form_data)
     assertRedirects(response, f'{url}#comments')
@@ -27,7 +27,7 @@ def test_user_can_create_comment(author_client, author, news, comment_form_data)
 
 
 def test_user_cant_use_bad_words(author_client, news):
-    """Комментарий с запрещёнными словами не публикуется, форма возвращает ошибку."""
+    """Стоп-слова: комментарий не создаётся, форма возвращает ошибку."""
     url = reverse('news:detail', args=(news.id,))
     bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
     response = author_client.post(url, data=bad_words_data)
@@ -36,7 +36,7 @@ def test_user_cant_use_bad_words(author_client, news):
 
 
 def test_author_can_delete_comment(author_client, comment):
-    """Авторизованный пользователь может удалить свой комментарий."""
+    """Автор может удалить свой комментарий."""
     delete_url = reverse('news:delete', args=(comment.id,))
     detail_url = reverse('news:detail', args=(comment.news.id,))
     response = author_client.delete(delete_url)
@@ -45,7 +45,7 @@ def test_author_can_delete_comment(author_client, comment):
 
 
 def test_user_cant_delete_comment_of_another_user(reader_client, comment):
-    """Авторизованный пользователь не может удалить чужой комментарий."""
+    """Пользователь не может удалить чужой комментарий."""
     delete_url = reverse('news:delete', args=(comment.id,))
     response = reader_client.delete(delete_url)
     assert response.status_code == HTTPStatus.NOT_FOUND
@@ -53,7 +53,7 @@ def test_user_cant_delete_comment_of_another_user(reader_client, comment):
 
 
 def test_author_can_edit_comment(author_client, comment, edited_comment_form_data):
-    """Авторизованный пользователь может редактировать свой комментарий."""
+    """Автор может редактировать свой комментарий."""
     edit_url = reverse('news:edit', args=(comment.id,))
     detail_url = reverse('news:detail', args=(comment.news.id,))
     response = author_client.post(edit_url, data=edited_comment_form_data)
@@ -62,8 +62,12 @@ def test_author_can_edit_comment(author_client, comment, edited_comment_form_dat
     assert comment.text == edited_comment_form_data['text']
 
 
-def test_user_cant_edit_comment_of_another_user(reader_client, comment, edited_comment_form_data):
-    """Авторизованный пользователь не может редактировать чужой комментарий."""
+def test_user_cant_edit_comment_of_another_user(
+    reader_client,
+    comment,
+    edited_comment_form_data,
+):
+    """Пользователь не может редактировать чужой комментарий."""
     old_text = comment.text
     edit_url = reverse('news:edit', args=(comment.id,))
     response = reader_client.post(edit_url, data=edited_comment_form_data)

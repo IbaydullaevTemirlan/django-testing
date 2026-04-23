@@ -16,7 +16,7 @@ def news(db):
 
 @pytest.fixture
 def author(django_user_model, db):
-    """Создаёт пользователя - автора комментария."""
+    """Создаёт пользователя — автора комментария."""
     return django_user_model.objects.create(username='Автор')
 
 
@@ -45,7 +45,11 @@ def reader_client(reader):
 @pytest.fixture
 def comment(news, author, db):
     """Создаёт комментарий к новости от имени автора."""
-    return Comment.objects.create(news=news, author=author, text='Текст комментария')
+    return Comment.objects.create(
+        news=news,
+        author=author,
+        text='Текст комментария',
+    )
 
 
 @pytest.fixture
@@ -56,13 +60,13 @@ def news_args(news):
 
 @pytest.fixture
 def comment_args(comment):
-    """Возвращает args для reverse() страниц редактирования/удаления комментария."""
+    """Возвращает args для reverse() редактирования/удаления комментария."""
     return (comment.id,)
 
 
 @pytest.fixture
 def many_news(db):
-    """Создаёт новости для проверки количества и сортировки."""
+    """Создаёт новости для проверки количества и сортировки на главной."""
     today = timezone.now().date()
     all_news = [
         News(
@@ -77,7 +81,7 @@ def many_news(db):
 
 @pytest.fixture
 def news_with_comments(author, db):
-    """Создаёт новость и 10 комментариев с разным временем создания для проверки сортировки."""
+    """Создаёт новость и комментарии с разным временем создания."""
     news = News.objects.create(title='Тестовая новость', text='Просто текст.')
     now = timezone.now()
     for index in range(10):

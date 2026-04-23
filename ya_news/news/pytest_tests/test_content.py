@@ -1,4 +1,3 @@
-import pytest
 from django.conf import settings
 from django.urls import reverse
 
@@ -6,7 +5,7 @@ from news.forms import CommentForm
 
 
 def test_news_count(client, many_news):
-    """Количество новостей на главной странице - не более заданного в настройках."""
+    """На главной странице не больше NEWS_COUNT_ON_HOME_PAGE новостей."""
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
@@ -14,7 +13,7 @@ def test_news_count(client, many_news):
 
 
 def test_news_order(client, many_news):
-    """Новости на главной странице отсортированы от свежих к старым."""
+    """Новости на главной отсортированы от свежих к старым."""
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
@@ -24,7 +23,7 @@ def test_news_order(client, many_news):
 
 
 def test_comments_order(client, news_with_comments):
-    """Комментарии на странице новости отсортированы от старых к новым."""
+    """Комментарии отсортированы от старых к новым."""
     url = reverse('news:detail', args=(news_with_comments.id,))
     response = client.get(url)
     assert 'news' in response.context
@@ -36,14 +35,14 @@ def test_comments_order(client, news_with_comments):
 
 
 def test_anonymous_client_has_no_form(client, news):
-    """Анонимному пользователю недоступна форма комментария."""
+    """Анониму не передаётся форма комментария."""
     url = reverse('news:detail', args=(news.id,))
     response = client.get(url)
     assert 'form' not in response.context
 
 
 def test_authorized_client_has_form(author_client, news):
-    """Авторизованному пользователю доступна форма комментария."""
+    """Авторизованному передаётся форма комментария."""
     url = reverse('news:detail', args=(news.id,))
     response = author_client.get(url)
     assert 'form' in response.context
