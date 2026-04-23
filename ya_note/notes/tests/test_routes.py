@@ -25,7 +25,7 @@ class TestRoutes(TestCase):
         )
 
     def test_pages_availability(self):
-        """Главная и страницы регистрации/логина/логаута доступны анониму."""
+        """Главная и страницы регистрации/логина/логаута доступны анон."""
         urls = (
             ('notes:home', None),
             ('users:login', None),
@@ -46,7 +46,7 @@ class TestRoutes(TestCase):
                     self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_pages_availability_for_auth_user(self):
-        """Страницы list/add/success доступны авторизованному пользователю."""
+        """list/add/success доступны авторизованному пользователю."""
         self.client.force_login(self.author)
         for name in ('notes:list', 'notes:add', 'notes:success'):
             with self.subTest(name=name):
@@ -69,7 +69,7 @@ class TestRoutes(TestCase):
                     self.assertEqual(response.status_code, status)
 
     def test_redirect_for_anonymous_client(self):
-        """Аноним перенаправляется на логин при входе на защищённые страницы."""
+        """Аноним перенаправляется на логин при входе."""
         login_url = reverse('users:login')
         for name in (
             'notes:list',

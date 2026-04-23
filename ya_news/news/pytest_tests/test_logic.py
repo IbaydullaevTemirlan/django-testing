@@ -7,14 +7,23 @@ from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
 
 
-def test_anonymous_user_cant_create_comment(client, news, comment_form_data):
+def test_anonymous_user_cant_create_comment(
+    client,
+    news,
+    comment_form_data,
+):
     """Аноним не может отправить комментарий."""
     url = reverse('news:detail', args=(news.id,))
     client.post(url, data=comment_form_data)
     assert Comment.objects.count() == 0
 
 
-def test_user_can_create_comment(author_client, author, news, comment_form_data):
+def test_user_can_create_comment(
+    author_client,
+    author,
+    news,
+    comment_form_data,
+):
     """Авторизованный может отправить комментарий."""
     url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=comment_form_data)
@@ -29,7 +38,8 @@ def test_user_can_create_comment(author_client, author, news, comment_form_data)
 def test_user_cant_use_bad_words(author_client, news):
     """Стоп-слова: комментарий не создаётся, форма возвращает ошибку."""
     url = reverse('news:detail', args=(news.id,))
-    bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
+    text = f'Какой-то текст, {BAD_WORDS[0]}, еще текст'
+    bad_words_data = {'text': text}
     response = author_client.post(url, data=bad_words_data)
     assertFormError(response.context['form'], 'text', errors=WARNING)
     assert Comment.objects.count() == 0
@@ -52,7 +62,9 @@ def test_user_cant_delete_comment_of_another_user(reader_client, comment):
     assert Comment.objects.count() == 1
 
 
-def test_author_can_edit_comment(author_client, comment, edited_comment_form_data):
+def test_author_can_edit_comment(author_client, comment,
+                                 edited_comment_form_data
+                                 ):
     """Автор может редактировать свой комментарий."""
     edit_url = reverse('news:edit', args=(comment.id,))
     detail_url = reverse('news:detail', args=(comment.news.id,))
