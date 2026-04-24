@@ -24,11 +24,15 @@ class TestNoteCreation(TestCase):
         cls.auth_client = Client()
         cls.auth_client.force_login(cls.user)
 
-        cls.form_data = {
+        cls.base_form_data = {
             'title': 'Новая заметка',
             'text': 'Текст заметки',
             'slug': 'test-slug',
         }
+
+    def setUp(self):
+        """Создаёт данные формы для каждого теста заново."""
+        self.form_data = self.base_form_data.copy()
 
     def test_anonymous_user_cant_create_note(self):
         """Анонимный пользователь не может создать заметку."""
@@ -50,15 +54,13 @@ class TestNoteCreation(TestCase):
 
     def test_slug_is_created_if_not_set(self):
         """Если slug не заполнен, он создаётся из заголовка."""
-        form_data = self.form_data.copy()
-        form_data['title'] = 'Заметка без slug'
-        form_data.pop('slug')
+        self.form_data.pop('slug')
 
-        response = self.auth_client.post(self.add_url, data=form_data)
+        response = self.auth_client.post(self.add_url, data=self.form_data)
         self.assertRedirects(response, self.success_url)
 
         note = Note.objects.get()
-        expected_slug = slugify(form_data['title'])
+        expected_slug = slugify(self.form_data['title'])
         self.assertEqual(note.slug, expected_slug)
 
     def test_user_cant_create_note_with_existing_slug(self):
@@ -69,14 +71,12 @@ class TestNoteCreation(TestCase):
             slug='existing-slug',
             author=self.user,
         )
-        form_data = self.form_data.copy()
-        form_data['slug'] = existing_note.slug
+        self.form_data['slug'] = existing_note.slug
 
-        response = self.auth_client.post(self.add_url, data=form_data)
+        response = self.auth_client.post(self.add_url, data=self.form_data)
 
         form = response.context['form']
-        self.assertFormError(form, 'slug', existing_note.slug + WARNING)
-
+        self.assertFormError(form, 'slug', self.form_data['slug'] + WARNING)
         self.assertEqual(Note.objects.count(), 1)
 
 
@@ -102,38 +102,39 @@ class TestNoteEditDelete(TestCase):
             slug='test-slug',
             author=cls.author,
         )
+
         cls.edit_url = reverse('notes:edit', args=(cls.note.slug,))
         cls.delete_url = reverse('notes:delete', args=(cls.note.slug,))
 
-        cls.form_data = {
+        cls.base_form_data = {
             'title': 'Новый заголовок',
             'text': 'Новый текст',
             'slug': 'new-slug',
         }
+
+    def setUp(self):
+        """Создаёт данные формы для каждого теста заново."""
+        self.form_data = self.base_form_data.copy()
 
     def test_author_can_edit_note(self):
         """Автор может редактировать свою заметку."""
         response = self.author_client.post(self.edit_url, data=self.form_data)
         self.assertRedirects(response, self.success_url)
 
-        self.note.refresh_from_db()
-        self.assertEqual(self.note.title, self.form_data['title'])
-        self.assertEqual(self.note.text, self.form_data['text'])
-        self.assertEqual(self.note.slug, self.form_data['slug'])
+        note_from_db = Note.objects.get(id=self.note.id)
+        self.assertEqual(note_from_db.title, self.form_data['title'])
+        self.assertEqual(note_from_db.text, self.form_data['text'])
+        self.assertEqual(note_from_db.slug, self.form_data['slug'])
 
     def test_user_cant_edit_note_of_another_user(self):
         """Пользователь не может редактировать чужую заметку."""
-        old_title = self.note.title
-        old_text = self.note.text
-        old_slug = self.note.slug
-
         response = self.reader_client.post(self.edit_url, data=self.form_data)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
         note_from_db = Note.objects.get(id=self.note.id)
-        self.assertEqual(note_from_db.title, old_title)
-        self.assertEqual(note_from_db.text, old_text)
-        self.assertEqual(note_from_db.slug, old_slug)
+        self.assertEqual(note_from_db.title, self.note.title)
+        self.assertEqual(note_from_db.text, self.note.text)
+        self.assertEqual(note_from_db.slug, self.note.slug)
 
     def test_author_can_delete_note(self):
         """Автор может удалить свою заметку."""
