@@ -39,7 +39,7 @@ class TestNotesListPage(TestCase):
         )
 
     def test_notes_list_for_different_users(self):
-        """Заметка видна только своему автору и не видна другому пользователю."""
+        """Заметка видна только автору."""
         cases = (
             (self.author_client, self.author_note, True),
             (self.reader_client, self.author_note, False),
