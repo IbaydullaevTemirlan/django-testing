@@ -79,7 +79,7 @@ class TestRoutes(TestCase):
                     self.assertEqual(response.status_code, status)
 
     def test_redirect_for_anonymous_client(self):
-        """Аноним перенаправляется на логин."""
+        """Анонимус перенаправляется на логин."""
         urls = (
             self.list_url,
             self.add_url,
