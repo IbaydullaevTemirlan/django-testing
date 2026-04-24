@@ -9,7 +9,7 @@ from news.models import Comment
 def test_anonymous_user_cant_create_comment(
     client,
     detail_url,
-    comment_form_data
+    comment_form_data,
 ):
     """Анонимный пользователь не может отправить комментарий."""
     client.post(detail_url, data=comment_form_data)
@@ -55,7 +55,7 @@ def test_author_can_delete_comment(
 
 def test_user_cant_delete_comment_of_another_user(
     reader_client,
-    comment_delete_url
+    comment_delete_url,
 ):
     """Пользователь не может удалить чужой комментарий."""
     response = reader_client.delete(comment_delete_url)
@@ -71,12 +71,10 @@ def test_author_can_edit_comment(
     comment_form_data,
 ):
     """Автор может редактировать свой комментарий."""
-    form_data = comment_form_data.copy()
-    form_data['text'] = 'Ещё один новый текст'
-    response = author_client.post(comment_edit_url, data=form_data)
+    response = author_client.post(comment_edit_url, data=comment_form_data)
     assertRedirects(response, detail_comments_url)
     comment.refresh_from_db()
-    assert comment.text == form_data['text']
+    assert comment.text == comment_form_data['text']
 
 
 def test_user_cant_edit_comment_of_another_user(
@@ -87,9 +85,7 @@ def test_user_cant_edit_comment_of_another_user(
 ):
     """Пользователь не может редактировать чужой комментарий."""
     old_text = comment.text
-    form_data = comment_form_data.copy()
-    form_data['text'] = 'Ещё один новый текст'
-    response = reader_client.post(comment_edit_url, data=form_data)
+    response = reader_client.post(comment_edit_url, data=comment_form_data)
     assert response.status_code == HTTPStatus.NOT_FOUND
     comment.refresh_from_db()
     assert comment.text == old_text
