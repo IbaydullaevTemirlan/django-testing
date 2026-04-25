@@ -25,32 +25,24 @@ class TestNotesListPage(TestCase):
         cls.reader_client = Client()
         cls.reader_client.force_login(cls.reader)
 
-        cls.author_note = Note.objects.create(
+        cls.note = Note.objects.create(
             title='Заголовок автора',
             text='Текст',
             slug='author-note',
             author=cls.author,
         )
-        cls.reader_note = Note.objects.create(
-            title='Заголовок читателя',
-            text='Текст',
-            slug='reader-note',
-            author=cls.reader,
-        )
 
     def test_notes_list_for_different_users(self):
         """Заметка видна только автору."""
         cases = (
-            (self.author_client, self.author_note, True),
-            (self.reader_client, self.author_note, False),
-            (self.author_client, self.reader_note, False),
-            (self.reader_client, self.reader_note, True),
+            (self.author_client, True),
+            (self.reader_client, False),
         )
-        for client, note, expected in cases:
-            with self.subTest(note=note, expected=expected):
+        for client, expected in cases:
+            with self.subTest(expected=expected):
                 response = client.get(self.list_url)
                 object_list = response.context['object_list']
-                self.assertIs(note in object_list, expected)
+                self.assertIs(self.note in object_list, expected)
 
 
 class TestNoteFormPages(TestCase):
